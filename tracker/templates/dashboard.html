@@ -1,0 +1,96 @@
+{% extends 'base.html' %}
+{% block title %}Dashboard | FitTrack{% endblock %}
+{% block content %}
+<div class="row g-4">
+    <div class="col-12">
+        <div class="card shadow-sm border-0 rounded-4">
+            <div class="card-body p-4">
+                <h2 class="fw-bold mb-1">Welcome back, {{ user.first_name|default:user.username }}.</h2>
+                <p class="text-muted mb-0">Stay consistent, track progress, and keep your training on pace.</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 col-xl-3">
+        <div class="card shadow-sm border-0 rounded-4 h-100">
+            <div class="card-body">
+                <div class="text-muted small">Current Body Weight</div>
+                <div class="display-6 fw-bold">{% if latest_weight %}{{ latest_weight.body_weight }} kg{% else %}—{% endif %}</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 col-xl-3">
+        <div class="card shadow-sm border-0 rounded-4 h-100">
+            <div class="card-body">
+                <div class="text-muted small">Last Workout</div>
+                <div class="fs-5 fw-bold">{% if last_workout %}{{ last_workout.workout_name }}{% else %}No workouts yet{% endif %}</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 col-xl-3">
+        <div class="card shadow-sm border-0 rounded-4 h-100">
+            <div class="card-body">
+                <div class="text-muted small">Number of Workouts</div>
+                <div class="display-6 fw-bold">{{ workout_count }}</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 col-xl-3">
+        <div class="card shadow-sm border-0 rounded-4 h-100">
+            <div class="card-body">
+                <div class="text-muted small">Weekly Workout Count</div>
+                <div class="display-6 fw-bold">{{ weekly_workouts }}</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4 mt-1">
+    <div class="col-lg-8">
+        <div class="card shadow-sm border-0 rounded-4">
+            <div class="card-body p-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="fw-bold mb-0">Recent Activity</h5>
+                    <a href="{% url 'workout-list' %}" class="btn btn-sm btn-outline-primary">View History</a>
+                </div>
+                <ul class="list-group list-group-flush">
+                    {% for workout in recent_workouts %}
+                        <li class="list-group-item px-0">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <div class="fw-semibold">{{ workout.workout_name }}</div>
+                                    <div class="text-muted small">{{ workout.workout_date }} • {{ workout.exercises.count }} exercise{{ workout.exercises.count|pluralize }}</div>
+                                </div>
+                                <a href="{% url 'workout-detail' workout.pk %}" class="btn btn-sm btn-outline-secondary">Open</a>
+                            </div>
+                        </li>
+                    {% empty %}
+                        <li class="list-group-item px-0 text-muted">No workouts recorded yet.</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="card shadow-sm border-0 rounded-4">
+            <div class="card-body p-4">
+                <h5 class="fw-bold mb-3">Quick Buttons</h5>
+                <div class="d-grid gap-2">
+                    <a href="{% url 'workout-create' %}" class="btn btn-primary">Start Workout</a>
+                    <a href="{% url 'weight-create' %}" class="btn btn-outline-primary">Log Weight</a>
+                    <a href="{% url 'workout-list' %}" class="btn btn-outline-primary">Workout History</a>
+                    <a href="{% url 'progress' %}" class="btn btn-outline-primary">Progress</a>
+                    <a href="{% url 'partner' %}" class="btn btn-outline-primary">Partner</a>
+                </div>
+                {% if partner_status %}
+                    <div class="alert alert-info mt-3 mb-0">
+                        Partner status: <strong>{{ partner_status.status|title }}</strong>
+                        {% if partner_status.status == 'accepted' %}
+                            with {{ partner_status.partner_user.username }}
+                        {% endif %}
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+{% block title %}Workouts | FitTrack{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="fw-bold mb-1">Workout History</h2>
+        <p class="text-muted mb-0">Track every session and revisit your progress.</p>
+    </div>
+    <a href="{% url 'workout-create' %}" class="btn btn-primary">New Workout</a>
+</div>
+<div class="row g-4">
+    {% for workout in workouts %}
+        <div class="col-12">
+            <div class="card shadow-sm border-0 rounded-4">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+                        <div>
+                            <h5 class="fw-bold mb-1">{{ workout.workout_name }}</h5>
+                            <div class="text-muted small">{{ workout.workout_date }} • {{ workout.exercises.count }} exercise{{ workout.exercises.count|pluralize }}</div>
+                        </div>
+                        <div class="btn-group">
+                            <a href="{% url 'workout-detail' workout.pk %}" class="btn btn-outline-primary btn-sm">View</a>
+                            <a href="{% url 'workout-edit' workout.pk %}" class="btn btn-outline-secondary btn-sm">Edit</a>
+                            <a href="{% url 'workout-delete' workout.pk %}" class="btn btn-outline-danger btn-sm">Delete</a>
+                            <a href="{% url 'workout-duplicate' workout.pk %}" class="btn btn-outline-success btn-sm">Duplicate</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% empty %}
+        <div class="col-12">
+            <div class="card shadow-sm border-0 rounded-4">
+                <div class="card-body p-4 text-center text-muted">No workouts yet. Start your first session.</div>
+            </div>
+        </div>
+    {% endfor %}
+</div>
+{% endblock %}

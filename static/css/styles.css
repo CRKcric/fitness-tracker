@@ -1,0 +1,49 @@
+:root {
+    --primary: #1E3A5F;
+    --secondary: #FFFFFF;
+    --accent: #5DADE2;
+    --success: #2ECC71;
+    --warning: #F39C12;
+    --danger: #E74C3C;
+    --bg: #F5F7FA;
+    --text: #2C3E50;
+}
+
+body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.card {
+    border-radius: 1.25rem;
+    box-shadow: 0 8px 24px rgba(30, 58, 95, 0.08);
+}
+
+.btn-primary {
+    background-color: var(--primary);
+    border-color: var(--primary);
+}
+
+.btn-primary:hover {
+    background-color: #18334d;
+    border-color: #18334d;
+}
+
+.btn-outline-primary {
+    color: var(--primary);
+    border-color: var(--primary);
+}
+
+.btn-outline-primary:hover {
+    background-color: var(--primary);
+    color: white;
+}
+
+.form-control, .form-select, .form-floating {
+    border-radius: 0.8rem;
+}
+
+.navbar-brand {
+    letter-spacing: 0.03em;
+}

@@ -1,0 +1,107 @@
+{% extends 'base.html' %}
+{% block title %}Workout Details | FitTrack{% endblock %}
+{% block content %}
+<div class="card shadow-sm border-0 rounded-4">
+    <div class="card-body p-4">
+        <div class="d-flex justify-content-between flex-wrap gap-2 align-items-center mb-4">
+            <div>
+                <h2 class="fw-bold mb-1">{{ workout.workout_name }}</h2>
+                <div class="text-muted">{{ workout.workout_date }} • {{ workout.notes|default:'No notes' }}</div>
+            </div>
+            <div class="btn-group">
+                <a href="{% url 'workout-edit' workout.pk %}" class="btn btn-outline-primary btn-sm">Edit</a>
+                <a href="{% url 'workout-delete' workout.pk %}" class="btn btn-outline-danger btn-sm">Delete</a>
+                <a href="{% url 'workout-duplicate' workout.pk %}" class="btn btn-outline-success btn-sm">Duplicate</a>
+            </div>
+        </div>
+        <div class="row g-4 mt-2">
+            <div class="col-lg-5">
+                <div class="card border-0 rounded-4" style="background: #f8fbff;">
+                    <div class="card-body">
+                        <h5 class="fw-bold mb-3">Add Exercise</h5>
+                        <form method="post" novalidate>
+                            {% csrf_token %}
+                            <input type="hidden" name="add-exercise" value="1">
+                            <datalist id="common-exercises">
+                                {% for name, category in common_exercises %}
+                                    <option value="{{ name }}">{{ category|capfirst }}</option>
+                                {% endfor %}
+                            </datalist>
+                            {% for field in exercise_form %}
+                                <div class="mb-3">
+                                    <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+                                    {{ field }}
+                                    {% if field.errors %}<div class="text-danger small">{{ field.errors|striptags }}</div>{% endif %}
+                                </div>
+                            {% endfor %}
+                            <button class="btn btn-primary">Add exercise</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-7">
+                <div class="card border-0 rounded-4" style="background: #f8fbff;">
+                    <div class="card-body">
+                        <h5 class="fw-bold mb-3">Add Set</h5>
+                        <form method="post" novalidate>
+                            {% csrf_token %}
+                            {% for field in set_form %}
+                                <div class="mb-3">
+                                    <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+                                    {{ field }}
+                                    {% if field.errors %}<div class="text-danger small">{{ field.errors|striptags }}</div>{% endif %}
+                                </div>
+                            {% endfor %}
+                            <button class="btn btn-primary">Add set</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-4">
+            {% for exercise in workout.exercises.all %}
+                <div class="card border-0 rounded-4 mb-3" style="background: #f8fbff;">
+                    <div class="card-body">
+                        <h5 class="fw-bold">{{ exercise.exercise_name }}</h5>
+                        <div class="table-responsive">
+                            <table class="table table-sm align-middle">
+                                <thead>
+                                    <tr>
+                                        <th>Set</th>
+                                        <th>Weight</th>
+                                        <th>Reps</th>
+                                        <th>Notes</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for set in exercise.sets.all %}
+                                        <tr>
+                                            <td>{{ set.set_number }}</td>
+                                            <td>{{ set.weight }} kg</td>
+                                            <td>{{ set.repetitions }}</td>
+                                            <td>
+                                                <div class="d-flex justify-content-between align-items-center gap-2">
+                                                    <span>{{ set.notes|default:'—' }}</span>
+                                                    <div class="btn-group btn-group-sm">
+                                                        <a href="{% url 'set-edit' set.pk %}" class="btn btn-outline-primary">Edit</a>
+                                                        <a href="{% url 'set-delete' set.pk %}" class="btn btn-outline-danger">Delete</a>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    {% empty %}
+                                        <tr><td colspan="4" class="text-muted">No sets added.</td></tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            {% empty %}
+                <div class="text-muted">No exercises recorded for this workout.</div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}

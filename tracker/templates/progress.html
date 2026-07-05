@@ -1,0 +1,121 @@
+{% extends 'base.html' %}
+{% block title %}Progress | FitTrack{% endblock %}
+{% block content %}
+<div class="row g-4">
+    <div class="col-12">
+        <div class="card shadow-sm border-0 rounded-4">
+            <div class="card-body p-4">
+                <h2 class="fw-bold mb-1">Progress Overview</h2>
+                <p class="text-muted mb-0">Track your weight trend and the exercises you lift most often.</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-12">
+        <div class="card shadow-sm border-0 rounded-4">
+            <div class="card-body p-4">
+                <h5 class="fw-bold mb-3">Body Weight Progress</h5>
+                <canvas id="weightChart" height="120"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-12">
+        <div class="card shadow-sm border-0 rounded-4">
+            <div class="card-body p-4">
+                <h5 class="fw-bold mb-3">Personal Records</h5>
+                <div class="row g-3">
+                    {% for record in personal_records %}
+                        <div class="col-md-6 col-lg-3">
+                            <div class="border rounded-4 p-3 h-100">
+                                <div class="text-muted small">{{ record.label }}</div>
+                                <div class="fw-bold fs-5">{{ record.value }}</div>
+                            </div>
+                        </div>
+                    {% empty %}
+                        <div class="col-12 text-muted">No personal records recorded yet.</div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% if exercise_progress %}
+        {% for item in exercise_progress %}
+            <div class="col-12">
+                <div class="card shadow-sm border-0 rounded-4">
+                    <div class="card-body p-4">
+                        <h5 class="fw-bold mb-3">{{ item.name }} Progress</h5>
+                        <canvas id="chart-{{ forloop.counter }}" height="110"></canvas>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    {% endif %}
+    <div class="col-12">
+        <div class="card shadow-sm border-0 rounded-4">
+            <div class="card-body p-4">
+                <h5 class="fw-bold mb-3">Exercise Highlights</h5>
+                <ul class="list-group list-group-flush">
+                    {% for exercise in exercises %}
+                        <li class="list-group-item px-0">
+                            <div class="d-flex justify-content-between">
+                                <span>{{ exercise.exercise_name }}</span>
+                                <span class="text-muted">{{ exercise.sets.count }} set{{ exercise.sets.count|pluralize }}</span>
+                            </div>
+                        </li>
+                    {% empty %}
+                        <li class="list-group-item px-0 text-muted">No exercises recorded yet.</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script>
+    const weightLabels = [{% for log in weight_logs %}'{{ log.date }}'{% if not forloop.last %},{% endif %}{% endfor %}];
+    const weightValues = [{% for log in weight_logs %}{{ log.body_weight }}{% if not forloop.last %},{% endif %}{% endfor %}];
+    new Chart(document.getElementById('weightChart'), {
+        type: 'line',
+        data: {
+            labels: weightLabels,
+            datasets: [{
+                label: 'Body Weight (kg)',
+                data: weightValues,
+                borderColor: '#1E3A5F',
+                backgroundColor: 'rgba(30, 58, 95, 0.2)',
+                fill: true,
+                tension: 0.3
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: { beginAtZero: false }
+            }
+        }
+    });
+
+    {% for item in exercise_progress %}
+        new Chart(document.getElementById('chart-{{ forloop.counter }}'), {
+            type: 'line',
+            data: {
+                labels: {{ item.labels|safe }},
+                datasets: [{
+                    label: '{{ item.name }} (kg)',
+                    data: {{ item.values|safe }},
+                    borderColor: '#5DADE2',
+                    backgroundColor: 'rgba(93, 173, 226, 0.2)',
+                    fill: true,
+                    tension: 0.3
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: { beginAtZero: false }
+                }
+            }
+        });
+    {% endfor %}
+</script>
+{% endblock %}

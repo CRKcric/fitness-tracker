@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+{% block title %}FitTrack | Track Your Strength{% endblock %}
+{% block content %}
+<div class="row align-items-center g-5 py-4">
+    <div class="col-lg-7">
+        <div class="display-5 fw-bold mb-3">Train with clarity. Track every rep.</div>
+        <p class="lead text-muted">A modern personal workout and weight tracker built for consistent progress, simple logging, and shared accountability.</p>
+        <div class="d-flex flex-wrap gap-2 mt-4">
+            <a href="{% url 'register' %}" class="btn btn-primary btn-lg">Get Started</a>
+            <a href="{% url 'login' %}" class="btn btn-outline-primary btn-lg">Sign In</a>
+        </div>
+    </div>
+    <div class="col-lg-5">
+        <div class="card shadow-sm border-0 rounded-4">
+            <div class="card-body p-4">
+                <h5 class="fw-bold mb-3">What you can do</h5>
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item px-0">Log workouts, exercises, sets, reps, and weights</li>
+                    <li class="list-group-item px-0">Track body weight over time with charts</li>
+                    <li class="list-group-item px-0">View progress and personal records</li>
+                    <li class="list-group-item px-0">Connect with one workout partner</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

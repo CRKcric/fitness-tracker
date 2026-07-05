@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+{% block title %}Delete Workout | FitTrack{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-6">
+        <div class="card shadow-sm border-0 rounded-4">
+            <div class="card-body p-4">
+                <h2 class="fw-bold mb-3">Delete workout?</h2>
+                <p class="text-muted">This will permanently remove the workout and its exercises.</p>
+                <form method="post">
+                    {% csrf_token %}
+                    <button class="btn btn-danger">Delete</button>
+                    <a href="{% url 'workout-list' %}" class="btn btn-outline-secondary">Cancel</a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
