@@ -1,8 +1,21 @@
+import os
+from importlib import reload
+from unittest.mock import patch
+
 from django.contrib.auth import get_user_model
 from django.test import TestCase
 from django.urls import reverse
 
+import fitness_tracker.settings as settings_module
+
 from .models import Exercise, Partner, Workout
+
+
+class AllowedHostsTests(TestCase):
+    def test_render_hostname_is_added_to_allowed_hosts(self):
+        with patch.dict(os.environ, {'RENDER_EXTERNAL_HOSTNAME': 'demo.onrender.com'}, clear=False):
+            reloaded = reload(settings_module)
+            self.assertIn('demo.onrender.com', reloaded.ALLOWED_HOSTS)
 
 
 class WorkoutFlowTests(TestCase):
