@@ -1,7 +1,7 @@
 from datetime import timedelta
 
 from django.contrib import messages
-from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth import authenticate, get_user_model, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.views import LoginView as AuthLoginView
@@ -9,6 +9,7 @@ from django.db.models import Count, Q
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse_lazy
 from django.utils import timezone
+from django.views.decorators.http import require_POST
 from django.views.generic import CreateView, DeleteView, DetailView, ListView, UpdateView, View
 
 from .forms import ExerciseForm, PartnerForm, ProfileForm, RegisterForm, WeightLogForm, WorkoutForm, WorkoutSetForm
@@ -63,7 +64,7 @@ def dashboard(request):
         'last_workout': last_workout,
         'workout_count': workouts.count(),
         'weekly_workouts': weekly_workouts,
-        'recent_workouts': workouts.order_by('-workout_date', '-created_at')[:5],
+        'recent_workouts': workouts.annotate(exercise_count=Count('exercises')).order_by('-workout_date', '-created_at')[:5],
         'partner_status': partner_status,
     }
     return render(request, 'dashboard.html', context)
@@ -86,9 +87,12 @@ class WorkoutListView(LoginRequiredMixin, ListView):
     model = Workout
     template_name = 'workouts/workout_list.html'
     context_object_name = 'workouts'
+    paginate_by = 20
 
     def get_queryset(self):
-        return Workout.objects.filter(user=self.request.user).order_by('-workout_date', '-created_at')
+        return Workout.objects.filter(user=self.request.user).annotate(
+            exercise_count=Count('exercises')
+        ).order_by('-workout_date', '-created_at')
 
 
 class WorkoutCreateView(LoginRequiredMixin, CreateView):
@@ -107,7 +111,7 @@ class WorkoutDetailView(LoginRequiredMixin, View):
     template_name = 'workouts/workout_detail.html'
 
     def get_queryset(self):
-        return Workout.objects.filter(user=self.request.user)
+        return Workout.objects.filter(user=self.request.user).prefetch_related('exercises__sets')
 
     def get(self, request, *args, **kwargs):
         workout = get_object_or_404(self.get_queryset(), pk=kwargs['pk'])
@@ -165,6 +169,7 @@ class WorkoutDeleteView(LoginRequiredMixin, DeleteView):
 
 
 @login_required
+@require_POST
 def duplicate_workout(request, pk):
     source_workout = get_object_or_404(Workout, pk=pk, user=request.user)
     new_workout = Workout.objects.create(
@@ -196,6 +201,7 @@ class WeightLogListView(LoginRequiredMixin, ListView):
     model = WeightLog
     template_name = 'weight/weight_list.html'
     context_object_name = 'weight_logs'
+    paginate_by = 20
 
     def get_queryset(self):
         return WeightLog.objects.filter(user=self.request.user).order_by('-date', '-created_at')
@@ -270,12 +276,14 @@ class WorkoutSetDeleteView(LoginRequiredMixin, DeleteView):
 
 @login_required
 def progress_view(request):
-    workouts = Workout.objects.filter(user=request.user)
+    workouts = Workout.objects.filter(user=request.user).prefetch_related('exercises__sets')
     weight_logs = WeightLog.objects.filter(user=request.user)
     exercises = []
+    exercise_workout_dates = {}
     for workout in workouts:
         for exercise in workout.exercises.all():
             exercises.append(exercise)
+            exercise_workout_dates[exercise.pk] = workout.workout_date
 
     all_sets = WorkoutSet.objects.filter(exercise__workout__user=request.user)
     heaviest_set = all_sets.order_by('-weight').first()
@@ -289,16 +297,19 @@ def progress_view(request):
 
     exercise_progress = []
     for exercise in exercises:
-        sets = exercise.sets.all().order_by('exercise__workout__workout_date')
-        if sets.exists():
+        sets = exercise.sets.all()
+        if sets:
+            workout_date = exercise_workout_dates[exercise.pk]
             exercise_progress.append({
                 'name': exercise.exercise_name,
-                'labels': [str(set.exercise.workout.workout_date) for set in sets],
+                'labels': [str(workout_date) for _ in sets],
                 'values': [float(set.weight) for set in sets],
             })
 
     context = {
         'weight_logs': weight_logs,
+        'weight_logs_dates': [str(log.date) for log in weight_logs],
+        'weight_logs_values': [float(log.body_weight) for log in weight_logs],
         'workouts': workouts,
         'exercises': exercises,
         'personal_records': personal_records,
@@ -316,7 +327,7 @@ def partner_view(request):
         partner_form = PartnerForm(request.user, request.POST)
         if partner_form.is_valid():
             target_user = partner_form.cleaned_data['partner_username']
-            partner_user = get_object_or_404(__import__('django.contrib.auth').contrib.auth.get_user_model(), username=target_user)
+            partner_user = get_object_or_404(get_user_model(), username=target_user)
             Partner.objects.create(user=request.user, partner_user=partner_user)
             messages.success(request, 'Partner request sent.')
             return redirect('partner')
@@ -335,10 +346,14 @@ def partner_view(request):
 
 
 @login_required
+@require_POST
 def accept_partner_request(request, pk):
     partner_request = get_object_or_404(Partner, pk=pk)
     if partner_request.partner_user != request.user:
         messages.error(request, 'You cannot accept this request.')
+        return redirect('partner')
+    if partner_request.status != 'pending':
+        messages.error(request, 'This request is no longer pending.')
         return redirect('partner')
     partner_request.status = 'accepted'
     partner_request.save()
@@ -347,10 +362,14 @@ def accept_partner_request(request, pk):
 
 
 @login_required
+@require_POST
 def decline_partner_request(request, pk):
     partner_request = get_object_or_404(Partner, pk=pk)
     if partner_request.partner_user != request.user and partner_request.user != request.user:
         messages.error(request, 'You cannot manage this request.')
+        return redirect('partner')
+    if partner_request.status != 'pending':
+        messages.error(request, 'This request is no longer pending.')
         return redirect('partner')
     partner_request.status = 'declined'
     partner_request.save()

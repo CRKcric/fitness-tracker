@@ -58,7 +58,7 @@
                             <div class="d-flex justify-content-between">
                                 <div>
                                     <div class="fw-semibold">{{ workout.workout_name }}</div>
-                                    <div class="text-muted small">{{ workout.workout_date }} • {{ workout.exercises.count }} exercise{{ workout.exercises.count|pluralize }}</div>
+                                    <div class="text-muted small">{{ workout.workout_date }} • {{ workout.exercise_count }} exercise{{ workout.exercise_count|pluralize }}</div>
                                 </div>
                                 <a href="{% url 'workout-detail' workout.pk %}" class="btn btn-sm btn-outline-secondary">Open</a>
                             </div>

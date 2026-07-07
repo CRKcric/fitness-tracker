@@ -34,8 +34,14 @@
                                 </div>
                                 {% if request.partner_user == user and request.status == 'pending' %}
                                     <div class="btn-group btn-group-sm">
-                                        <a href="{% url 'accept-partner' request.pk %}" class="btn btn-outline-success">Accept</a>
-                                        <a href="{% url 'decline-partner' request.pk %}" class="btn btn-outline-danger">Decline</a>
+                                        <form method="post" action="{% url 'accept-partner' request.pk %}" class="d-inline">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn btn-outline-success">Accept</button>
+                                        </form>
+                                        <form method="post" action="{% url 'decline-partner' request.pk %}" class="d-inline">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn btn-outline-danger">Decline</button>
+                                        </form>
                                     </div>
                                 {% endif %}
                             </div>

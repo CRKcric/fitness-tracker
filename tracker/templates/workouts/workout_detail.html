@@ -11,7 +11,10 @@
             <div class="btn-group">
                 <a href="{% url 'workout-edit' workout.pk %}" class="btn btn-outline-primary btn-sm">Edit</a>
                 <a href="{% url 'workout-delete' workout.pk %}" class="btn btn-outline-danger btn-sm">Delete</a>
-                <a href="{% url 'workout-duplicate' workout.pk %}" class="btn btn-outline-success btn-sm">Duplicate</a>
+                <form method="post" action="{% url 'workout-duplicate' workout.pk %}" class="d-inline">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-outline-success btn-sm">Duplicate</button>
+                </form>
             </div>
         </div>
         <div class="row g-4 mt-2">

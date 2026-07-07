@@ -51,7 +51,7 @@ class WorkoutFlowTests(TestCase):
         request_obj = Partner.objects.create(user=self.user, partner_user=partner_user)
         self.client.force_login(partner_user)
 
-        response = self.client.get(reverse('accept-partner', args=[request_obj.pk]))
+        response = self.client.post(reverse('accept-partner', args=[request_obj.pk]))
 
         request_obj.refresh_from_db()
         self.assertEqual(response.status_code, 302)

@@ -71,9 +71,11 @@
 </div>
 {% endblock %}
 {% block extra_js %}
+{{ weight_logs_dates|json_script:"weight-labels" }}
+{{ weight_logs_values|json_script:"weight-values" }}
 <script>
-    const weightLabels = [{% for log in weight_logs %}'{{ log.date }}'{% if not forloop.last %},{% endif %}{% endfor %}];
-    const weightValues = [{% for log in weight_logs %}{{ log.body_weight }}{% if not forloop.last %},{% endif %}{% endfor %}];
+    const weightLabels = JSON.parse(document.getElementById('weight-labels').textContent);
+    const weightValues = JSON.parse(document.getElementById('weight-values').textContent);
     new Chart(document.getElementById('weightChart'), {
         type: 'line',
         data: {
@@ -96,13 +98,18 @@
     });
 
     {% for item in exercise_progress %}
+        {% with idx=forloop.counter|stringformat:"s" %}
+        {% with labels_id="chart-labels-"|add:idx values_id="chart-values-"|add:idx %}
+        {{ item.labels|json_script:labels_id }}
+        {{ item.values|json_script:values_id }}
+        <script>
         new Chart(document.getElementById('chart-{{ forloop.counter }}'), {
             type: 'line',
             data: {
-                labels: {{ item.labels|safe }},
+                labels: JSON.parse(document.getElementById('{{ labels_id }}').textContent),
                 datasets: [{
-                    label: '{{ item.name }} (kg)',
-                    data: {{ item.values|safe }},
+                    label: '{{ item.name|escapejs }} (kg)',
+                    data: JSON.parse(document.getElementById('{{ values_id }}').textContent),
                     borderColor: '#5DADE2',
                     backgroundColor: 'rgba(93, 173, 226, 0.2)',
                     fill: true,
@@ -116,6 +123,9 @@
                 }
             }
         });
+        </script>
+        {% endwith %}
+        {% endwith %}
     {% endfor %}
 </script>
 {% endblock %}
