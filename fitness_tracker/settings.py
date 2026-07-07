@@ -32,13 +32,28 @@ render_host = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
 if render_host:
     DEFAULT_ALLOWED_HOSTS.append(render_host)
 
-ALLOWED_HOSTS = [host.strip() for host in os.environ.get('ALLOWED_HOSTS', '').split(',') if host.strip()]
+allowed_hosts_env = os.environ.get('ALLOWED_HOSTS', '')
+ALLOWED_HOSTS = [host.strip() for host in allowed_hosts_env.split(',') if host.strip()]
 if not ALLOWED_HOSTS:
     ALLOWED_HOSTS = DEFAULT_ALLOWED_HOSTS
-
-CSRF_TRUSTED_ORIGINS = []
 if render_host:
-    CSRF_TRUSTED_ORIGINS.append(f'https://{render_host}')
+    ALLOWED_HOSTS.append(render_host)
+    if '.' in render_host and render_host.count('.') >= 2:
+        ALLOWED_HOSTS.append(f'*.{render_host.split(".", 1)[1]}')
+
+csrf_origins = [origin.strip() for origin in os.environ.get('CSRF_TRUSTED_ORIGINS', '').split(',') if origin.strip()]
+if render_host:
+    csrf_origins.append(f'https://{render_host}')
+if not csrf_origins and render_host:
+    csrf_origins.append(f'https://{render_host}')
+CSRF_TRUSTED_ORIGINS = csrf_origins
+
+SECURE_SSL_REDIRECT = os.environ.get('SECURE_SSL_REDIRECT', 'False').lower() == 'true'
+SESSION_COOKIE_SECURE = os.environ.get('SESSION_COOKIE_SECURE', 'False').lower() == 'true'
+CSRF_COOKIE_SECURE = os.environ.get('CSRF_COOKIE_SECURE', 'False').lower() == 'true'
+USE_X_FORWARDED_HOST = os.environ.get('USE_X_FORWARDED_HOST', 'False').lower() == 'true'
+
+if render_host:
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
     SECURE_SSL_REDIRECT = True
     SESSION_COOKIE_SECURE = True
