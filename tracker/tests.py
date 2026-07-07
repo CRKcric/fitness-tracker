@@ -18,6 +18,14 @@ class AllowedHostsTests(TestCase):
             self.assertIn('demo.onrender.com', reloaded.ALLOWED_HOSTS)
 
 
+class DatabaseSettingsTests(TestCase):
+    def test_database_url_is_used_when_present(self):
+        with patch.dict(os.environ, {'DATABASE_URL': 'postgres://user:pass@localhost:5432/fitnessdb'}, clear=False):
+            reloaded = reload(settings_module)
+            self.assertEqual(reloaded.DATABASES['default']['ENGINE'], 'django.db.backends.postgresql')
+            self.assertEqual(reloaded.DATABASES['default']['NAME'], 'fitnessdb')
+
+
 class WorkoutFlowTests(TestCase):
     def setUp(self):
         self.user = get_user_model().objects.create_user(username='tester', password='StrongPass123!')

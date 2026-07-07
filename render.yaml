@@ -1,3 +1,8 @@
+databases:
+  - name: fitness-tracker-db
+    databaseName: fitness_tracker
+    user: fitness_tracker_user
+
 services:
   - type: web
     name: fitness-tracker
